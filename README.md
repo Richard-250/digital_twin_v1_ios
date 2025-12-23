@@ -11,3 +11,4 @@ To run this Digital twin app, you need an iPhone or iPad with the following:
 - A LiDAR Scanner
 - An A14 Bionic chip or later
 - iOS or iPadOS 18 or later
+- ios  12 or later
