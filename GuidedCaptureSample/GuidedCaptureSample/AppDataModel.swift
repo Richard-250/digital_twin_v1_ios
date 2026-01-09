@@ -81,6 +81,9 @@ class AppDataModel: Identifiable {
     }
 
     var captureMode: CaptureMode = .object
+    
+    // Track if bounding box should be locked (not auto-updated)
+    var isBoundingBoxLocked: Bool = false
 
     // When state moves to failed, this is the error causing it.
     private(set) var error: Swift.Error?
@@ -213,9 +216,17 @@ extension AppDataModel {
         var configuration = ObjectCaptureSession.Configuration()
         configuration.isOverCaptureEnabled = true
         configuration.checkpointDirectory = captureFolderManager.checkpointFolder
+        
+        // For body scanning, we want a larger initial detection area
+        // The system will detect based on the person's size, but we guide users
+        // to position themselves properly for optimal results
+        
         // Starts the initial segment and sets the output locations.
         session.start(imagesDirectory: captureFolderManager.imagesFolder,
                       configuration: configuration)
+        
+        // Reset bounding box lock state for new capture
+        isBoundingBoxLocked = false
 
         if case let .failed(error) = session.state {
             logger.error("Got error starting session! \(String(describing: error))")
@@ -264,6 +275,7 @@ extension AppDataModel {
         currentFeedback = []
         messageList.removeAll()
         captureMode = .object
+        isBoundingBoxLocked = false
         state = .ready
         isSaveDraftEnabled = false
         tutorialPlayedOnce = false

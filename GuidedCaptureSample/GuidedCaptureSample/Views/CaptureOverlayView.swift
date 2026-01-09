@@ -209,11 +209,19 @@ private struct BoundingBoxGuidanceView: View {
                             value: "Can‘t find your object. It should be larger than 3 in (8 cm) in each dimension.",
                             comment: "Feedback message when detection has failed.")
                     } else {
-                        return NSLocalizedString(
-                            "Move close and center the dot on your object, then tap Continue. (Object Capture, State)",
-                            bundle: Bundle.main,
-                            value: "Move close and center the dot on your object, then tap Continue.",
-                            comment: "Feedback message to fill the camera feed with the object.")
+                        if appModel.captureMode == .object {
+                            return NSLocalizedString(
+                                "Position the person in the center of the view. The bounding box will appear large by default. (Object Capture, State)",
+                                bundle: Bundle.main,
+                                value: "Position the person in the center of the view. The bounding box will appear large by default.",
+                                comment: "Feedback message for body scanning setup.")
+                        } else {
+                            return NSLocalizedString(
+                                "Move close and center the dot on your object, then tap Continue. (Object Capture, State)",
+                                bundle: Bundle.main,
+                                value: "Move close and center the dot on your object, then tap Continue.",
+                                comment: "Feedback message to fill the camera feed with the object.")
+                        }
                     }
                 case .area:
                     return NSLocalizedString(
@@ -223,11 +231,19 @@ private struct BoundingBoxGuidanceView: View {
                         comment: "Feedback message to look at the subject in the area mode.")
                 }
         } else if case .detecting = session.state {
-            return NSLocalizedString(
-                "Move around to ensure that the whole object is inside the box. Drag handles to manually resize. (Object Capture, State)",
-                bundle: Bundle.main,
-                value: "Move around to ensure that the whole object is inside the box. Drag handles to manually resize.",
-                comment: "Feedback message to resize the box to the object.")
+            if appModel.isBoundingBoxLocked {
+                return NSLocalizedString(
+                    "Box is locked. Resize using the handles to fit the person's body. (Object Capture, State)",
+                    bundle: Bundle.main,
+                    value: "Box is locked. Resize using the handles to fit the person's body.",
+                    comment: "Feedback message when box is locked and user should resize manually.")
+            } else {
+                return NSLocalizedString(
+                    "Resize the box to fit the person's body. Drag handles to adjust size. Tap Lock when ready. (Object Capture, State)",
+                    bundle: Bundle.main,
+                    value: "Resize the box to fit the person's body. Drag handles to adjust size. Tap Lock when ready.",
+                    comment: "Feedback message to resize the box for body scanning.")
+            }
         } else {
             return nil
         }

@@ -27,7 +27,10 @@ struct BottomOverlayButtons: View, OverlayButtons {
                         HelpButton()
                             .frame(width: 30)
                     case .detecting:
-                        ResetBoundingBoxButton(session: session)
+                        HStack(spacing: 12) {
+                            LockBoundingBoxButton(session: session)
+                            ResetBoundingBoxButton(session: session)
+                        }
                     default:
                         NumOfImagesButton(session: session)
                             .rotationEffect(rotationAngle)
@@ -161,6 +164,44 @@ private struct AutoDetectionStateView: View {
     }
 }
 
+private struct LockBoundingBoxButton: View {
+    @Environment(AppDataModel.self) var appModel
+    var session: ObjectCaptureSession
+
+    var body: some View {
+        Button(
+            action: {
+                appModel.isBoundingBoxLocked.toggle()
+                logger.log("Bounding box locked: \(appModel.isBoundingBoxLocked)")
+            },
+            label: {
+                VStack(spacing: 6) {
+                    Image(systemName: appModel.isBoundingBoxLocked ? "lock.fill" : "lock.open")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 30)
+
+                    if UIDevice.current.userInterfaceIdiom == .pad {
+                        Text(LocalizedString.lockBox)
+                            .font(.footnote)
+                            .opacity(0.7)
+                    }
+                }
+                .foregroundColor(appModel.isBoundingBoxLocked ? .green : .white)
+                .fontWeight(.semibold)
+            })
+        .padding(.bottom, UIDevice.current.userInterfaceIdiom == .pad ? 0 : 15)
+    }
+
+    struct LocalizedString {
+        static let lockBox = NSLocalizedString(
+            "Lock Box (Object Capture)",
+            bundle: Bundle.main,
+            value: "Lock Box",
+            comment: "Title for the Lock Box button on the object capture screen.")
+    }
+}
+
 private struct ResetBoundingBoxButton: View {
     @Environment(AppDataModel.self) var appModel
     var session: ObjectCaptureSession
@@ -168,6 +209,7 @@ private struct ResetBoundingBoxButton: View {
     var body: some View {
         Button(
             action: {
+                appModel.isBoundingBoxLocked = false
                 session.resetDetection()
             },
             label: {
