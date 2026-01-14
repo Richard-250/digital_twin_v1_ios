@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypes.build/master.swiftdeps"
+  },
+  "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/checkouts/swift-nio-extras/Sources/NIOHTTPTypes/NIOHTTPTypes.swift": {
+    "dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypes.build/NIOHTTPTypes.d",
+    "object": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypes.build/NIOHTTPTypes.swift.o",
+    "swiftmodule": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypes.build/NIOHTTPTypes~partial.swiftmodule",
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypes.build/NIOHTTPTypes.swiftdeps",
+    "diagnostics": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypes.build/NIOHTTPTypes.dia"
+  }
+}

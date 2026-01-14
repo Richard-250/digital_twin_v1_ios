@@ -1,0 +1,19 @@
+{
+  "": {
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/master.swiftdeps"
+  },
+  "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/checkouts/swift-service-lifecycle/Sources/UnixSignals/UnixSignal.swift": {
+    "dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/UnixSignal.d",
+    "object": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/UnixSignal.swift.o",
+    "swiftmodule": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/UnixSignal~partial.swiftmodule",
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/UnixSignal.swiftdeps",
+    "diagnostics": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/UnixSignal.dia"
+  },
+  "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/checkouts/swift-service-lifecycle/Sources/UnixSignals/UnixSignalsSequence.swift": {
+    "dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/UnixSignalsSequence.d",
+    "object": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/UnixSignalsSequence.swift.o",
+    "swiftmodule": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/UnixSignalsSequence~partial.swiftmodule",
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/UnixSignalsSequence.swiftdeps",
+    "diagnostics": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/UnixSignals.build/UnixSignalsSequence.dia"
+  }
+}

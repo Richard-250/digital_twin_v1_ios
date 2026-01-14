@@ -1,0 +1,26 @@
+{
+  "": {
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/master.swiftdeps"
+  },
+  "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/checkouts/swift-nio-extras/Sources/NIOHTTPTypesHTTP2/HTTP2HeadersStateMachine.swift": {
+    "dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTP2HeadersStateMachine.d",
+    "object": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTP2HeadersStateMachine.swift.o",
+    "swiftmodule": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTP2HeadersStateMachine~partial.swiftmodule",
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTP2HeadersStateMachine.swiftdeps",
+    "diagnostics": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTP2HeadersStateMachine.dia"
+  },
+  "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/checkouts/swift-nio-extras/Sources/NIOHTTPTypesHTTP2/HTTP2ToHTTPCodec.swift": {
+    "dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTP2ToHTTPCodec.d",
+    "object": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTP2ToHTTPCodec.swift.o",
+    "swiftmodule": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTP2ToHTTPCodec~partial.swiftmodule",
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTP2ToHTTPCodec.swiftdeps",
+    "diagnostics": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTP2ToHTTPCodec.dia"
+  },
+  "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/checkouts/swift-nio-extras/Sources/NIOHTTPTypesHTTP2/HTTPTypeConversion.swift": {
+    "dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTPTypeConversion.d",
+    "object": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTPTypeConversion.swift.o",
+    "swiftmodule": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTPTypeConversion~partial.swiftmodule",
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTPTypeConversion.swiftdeps",
+    "diagnostics": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/NIOHTTPTypesHTTP2.build/HTTPTypeConversion.dia"
+  }
+}

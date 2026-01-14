@@ -1,0 +1,19 @@
+{
+  "": {
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/master.swiftdeps"
+  },
+  "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/checkouts/swift-metrics/Sources/CoreMetrics/Locks.swift": {
+    "dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/Locks.d",
+    "object": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/Locks.swift.o",
+    "swiftmodule": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/Locks~partial.swiftmodule",
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/Locks.swiftdeps",
+    "diagnostics": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/Locks.dia"
+  },
+  "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/checkouts/swift-metrics/Sources/CoreMetrics/Metrics.swift": {
+    "dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/Metrics.d",
+    "object": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/Metrics.swift.o",
+    "swiftmodule": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/Metrics~partial.swiftmodule",
+    "swift-dependencies": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/Metrics.swiftdeps",
+    "diagnostics": "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/arm64-apple-macosx/debug/CoreMetrics.build/Metrics.dia"
+  }
+}

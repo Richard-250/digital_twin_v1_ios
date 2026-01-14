@@ -1,0 +1,4 @@
+module CNIOPosix {
+    umbrella header "/Users/macbookair/Documents/coding/digital_twin/digital_twin_v1_ios/ServerProcessingServer/.build/checkouts/swift-nio/Sources/CNIOPosix/include/CNIOPosix.h"
+    export *
+}

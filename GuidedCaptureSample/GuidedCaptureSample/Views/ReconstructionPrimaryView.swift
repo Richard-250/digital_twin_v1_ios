@@ -63,7 +63,8 @@ struct ReconstructionProgressView: View {
                     Button(action: {
                         logger.log("Canceling...")
                         isCancelling = true
-                        appModel.photogrammetrySession?.cancel()
+                        cancelled = true
+                        appModel.state = .restart
                     }, label: {
                         Text(LocalizedString.cancel)
                             .font(.headline)
@@ -107,65 +108,99 @@ struct ReconstructionProgressView: View {
         )
         .task {
             precondition(appModel.state == .reconstructing)
-            assert(appModel.photogrammetrySession != nil)
-            guard let session = appModel.photogrammetrySession else {
-                logger.error("Session unavailable from photogrammetry session.")
-
+            await processOnServer()
+        }  // task
+    }
+    
+    // MARK: - Server Processing
+    
+    private func processOnServer() async {
+        guard let captureFolderManager = appModel.captureFolderManager else {
+            logger.error("Capture folder manager unavailable")
+            gotError = true
+            error = ServerProcessingService.ServerError.invalidResponse
+            return
+        }
+        
+        let service = ServerProcessingService.shared
+        
+        do {
+            // Step 0: Test server connection first
+            logger.log("Testing server connection...")
+            processingStageDescription = "Checking server connection..."
+            progress = 0.05
+            
+            do {
+                _ = try await service.testConnection()
+                logger.log("Server connection successful")
+            } catch {
+                logger.error("Server connection failed: \(error.localizedDescription)")
+                gotError = true
+                self.error = error
                 return
             }
-
-            let outputs = UntilProcessingCompleteFilter(input: session.outputs)
-            do {
-                try session.process(requests: [.modelFile(url: outputFile)])
-            } catch {
-                logger.error("Processing the session failed!")
+            
+            // Step 1: Upload images to server
+            logger.log("Uploading images to server...")
+            processingStageDescription = "Uploading images to server..."
+            progress = 0.1
+            
+            let jobId = try await service.uploadImages(
+                from: captureFolderManager.imagesFolder,
+                captureMode: appModel.captureMode
+            )
+            
+            logger.log("Upload complete. Job ID: \(jobId)")
+            progress = 0.2
+            processingStageDescription = "Processing on server..."
+            
+            // Step 2: Poll for status until complete
+            var isProcessing = true
+            while isProcessing && !cancelled && !gotError {
+                try await Task.sleep(nanoseconds: 2_000_000_000) // Poll every 2 seconds
+                
+                let status = try await service.checkStatus(jobId: jobId)
+                
+                progress = 0.2 + (status.progress * 0.7) // 20% to 90%
+                processingStageDescription = status.stage ?? "Processing on server..."
+                
+                switch status.status {
+                case "completed":
+                    isProcessing = false
+                    logger.log("Processing completed on server")
+                    
+                    // Step 3: Download the result
+                    processingStageDescription = "Downloading model..."
+                    progress = 0.9
+                    
+                    try await service.downloadModel(jobId: jobId, to: outputFile)
+                    
+                    progress = 1.0
+                    completed = true
+                    appModel.state = .viewing
+                    
+                case "failed":
+                    isProcessing = false
+                    gotError = true
+                    error = ServerProcessingService.ServerError.downloadFailed
+                    logger.error("Processing failed on server")
+                    
+                default:
+                    // Continue polling
+                    break
+                }
             }
-            for await output in outputs {
-                switch output {
-                    case .inputComplete:
-                        break
-                    case .requestProgress(let request, fractionComplete: let fractionComplete):
-                        if case .modelFile = request {
-                            progress = Float(fractionComplete)
-                        }
-                    case .requestProgressInfo(let request, let progressInfo):
-                        if case .modelFile = request {
-                            estimatedRemainingTime = progressInfo.estimatedRemainingTime
-                            processingStageDescription = progressInfo.processingStage?.processingStageString
-                        }
-                    case .requestComplete(let request, _):
-                        switch request {
-                            case .modelFile(_, _, _):
-                                logger.log("RequestComplete: .modelFile")
-                            case .modelEntity(_, _), .bounds, .poses, .pointCloud:
-                                // Not supported yet
-                                break
-                            @unknown default:
-                                logger.warning("Received an output for an unknown request: \(String(describing: request))")
-                        }
-                    case .requestError(_, let requestError):
-                        if !isCancelling {
-                            gotError = true
-                            error = requestError
-                        }
-                    case .processingComplete:
-                        if !gotError {
-                            completed = true
-                            appModel.state = .viewing
-                        }
-                    case .processingCancelled:
-                        cancelled = true
-                        appModel.state = .restart
-                    case .invalidSample(id: _, reason: _), .skippedSample(id: _), .automaticDownsampling:
-                        continue
-                    case .stitchingIncomplete:
-                        logger.log("stitchingIncomplete")
-                    @unknown default:
-                        logger.warning("Received an unknown output: \(String(describing: output))")
-                    }
+            
+            if cancelled {
+                logger.log("Processing cancelled by user")
+                appModel.state = .restart
             }
-            logger.log("Reconstruction task exit")
-        }  // task
+            
+        } catch {
+            logger.error("Server processing error: \(error.localizedDescription)")
+            gotError = true
+            self.error = error
+        }
     }
 
     struct LocalizedString {
