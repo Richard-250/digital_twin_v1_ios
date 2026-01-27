@@ -186,11 +186,65 @@ def download(job_id):
         mimetype='model/vnd.usdz+zip'
     )
 
+def get_local_ip():
+    """Auto-detect the local IP address"""
+    import socket
+    try:
+        # Connect to a remote address (doesn't actually connect)
+        # This gets the IP of the interface used to reach that address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))  # Google DNS
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        # Fallback: try to get IP from hostname
+        try:
+            hostname = socket.gethostname()
+            ip = socket.gethostbyname(hostname)
+            if ip.startswith("127."):
+                # If it's localhost, try to find a real interface
+                import subprocess
+                result = subprocess.run(['ifconfig'], capture_output=True, text=True)
+                for line in result.stdout.split('\n'):
+                    if 'inet ' in line and '127.0.0.1' not in line:
+                        parts = line.strip().split()
+                        if len(parts) >= 2:
+                            return parts[1]
+            return ip
+        except Exception:
+            return "127.0.0.1"
+
+def get_hostname():
+    """Get the Mac's hostname for mDNS (.local)"""
+    import socket
+    try:
+        hostname = socket.gethostname()
+        # Remove .local if already present
+        if hostname.endswith('.local'):
+            return hostname
+        return f"{hostname}.local"
+    except Exception:
+        return None
+
 if __name__ == '__main__':
+    local_ip = get_local_ip()
+    hostname = get_hostname()
+    
     print("=" * 60)
-    print("Starting photogrammetry processing server on THIS COMPUTER")
-    print("Server will be accessible at: http://192.168.1.78:1100")
-    print("Make sure iPhone is on the same WiFi network")
+    print("Starting photogrammetry processing server")
+    print("=" * 60)
+    print(f"Server is running on port 1100")
+    print("")
+    print("Access from iPhone using ONE of these:")
+    print(f"  • IP Address:    http://{local_ip}:1100")
+    if hostname:
+        print(f"  • Hostname:      http://{hostname}:1100  (RECOMMENDED - never changes!)")
+    print("")
+    print("IMPORTANT:")
+    print("  • iPhone and Mac must be on same WiFi network")
+    print("  • Use the hostname (.local) if possible - it never changes!")
+    print("  • If hostname doesn't work, use the IP address above")
     print("=" * 60)
     app.run(host='0.0.0.0', port=1100, debug=True)
 

@@ -20,8 +20,9 @@ struct ReconstructionPrimaryView: View {
 
     var body: some View {
         if completed && !cancelled {
-            ModelView(modelFile: outputFile, endCaptureCallback: { [weak appModel] in
-                appModel?.endCapture()
+            // Show the model - user can view interactive version from gallery
+            ModelView(modelFile: outputFile, endCaptureCallback: {
+                appModel.endCapture()
             })
             .onAppear(perform: {
                 UIApplication.shared.isIdleTimerDisabled = false

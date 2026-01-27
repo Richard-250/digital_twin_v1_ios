@@ -8,6 +8,9 @@ import RealityKit
 import Vapor
 import MultipartKit
 import NIOCore
+#if canImport(Darwin)
+import Darwin
+#endif
 
 // Job tracking
 class ProcessingJob {
@@ -51,7 +54,12 @@ func configure(_ app: Application) throws {
     // Routes
     // Health check endpoint for connection testing
     app.get("status", "test") { req -> Response in
-        return Response(status: .ok, body: .init(string: "Server is running"))
+        // Return JSON with proper content type for browser display
+        let response: [String: String] = ["status": "Server is running"]
+        let responseData = try JSONEncoder().encode(response)
+        var headers = HTTPHeaders()
+        headers.contentType = .json
+        return Response(status: .ok, headers: headers, body: .init(data: responseData))
     }
     
     // Upload endpoint with very large body size support (20GB to handle 500+ high-res images)
@@ -211,8 +219,17 @@ func handleUpload(req: Request) throws -> EventLoopFuture<Response> {
         print("[UPLOAD] Job created: \(jobId)")
         
         // Start processing in background (fire and forget)
-        Task.detached {
-            await processImages(job: job, isAreaMode: isAreaMode)
+        if #available(macOS 14.0, *) {
+            Task.detached {
+                await processImages(job: job, isAreaMode: isAreaMode)
+            }
+        } else {
+            // macOS version too old - mark job as failed
+            withJobLock {
+                job.status = "failed"
+                job.stage = "Error: macOS 14.0 or later required for PhotogrammetrySession"
+            }
+            print("[UPLOAD] ERROR: macOS version too old. Requires macOS 14.0+")
         }
         
         let response: [String: String] = [
@@ -478,12 +495,69 @@ func handleDownload(jobId: String, req: Request) -> EventLoopFuture<Response> {
     }
 }
 
+// Helper to get local IP address
+func getLocalIP() -> String {
+    var address = "127.0.0.1"
+    var ifaddr: UnsafeMutablePointer<ifaddrs>? = nil
+    guard getifaddrs(&ifaddr) == 0 else { return address }
+    guard let firstAddr = ifaddr else { return address }
+    
+    for ifptr in sequence(first: firstAddr, next: { $0.pointee.ifa_next }) {
+        let interface = ifptr.pointee
+        let addrFamily = interface.ifa_addr.pointee.sa_family
+        
+        if addrFamily == UInt8(AF_INET) {
+            let name = String(cString: interface.ifa_name)
+            if name == "en0" || name.hasPrefix("en") { // WiFi or Ethernet
+                var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                getnameinfo(interface.ifa_addr, socklen_t(interface.ifa_addr.pointee.sa_len),
+                           &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST)
+                address = String(cString: hostname)
+                if !address.hasPrefix("127.") && !address.hasPrefix("169.254.") {
+                    break
+                }
+            }
+        }
+    }
+    freeifaddrs(ifaddr)
+    return address
+}
+
+// Helper to get hostname
+func getHostname() -> String? {
+    var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+    guard gethostname(&hostname, hostname.count) == 0 else { return nil }
+    let name = String(cString: hostname)
+    return name.hasSuffix(".local") ? name : "\(name).local"
+}
+
 // Run server  
 var env = try Environment.detect()
 try LoggingSystem.bootstrap(from: &env)
 
 let app = Application(env)
 defer { app.shutdown() }
+
+// Print server info
+let localIP = getLocalIP()
+let hostname = getHostname() ?? "unknown"
+
+print(String(repeating: "=", count: 60))
+print("Starting Swift Photogrammetry Processing Server")
+print(String(repeating: "=", count: 60))
+print("Server is running on port 1100")
+print("")
+print("Access from iPhone using ONE of these:")
+print("  • IP Address:    http://\(localIP):1100")
+if hostname != "unknown" {
+    print("  • Hostname:      http://\(hostname):1100  (RECOMMENDED - never changes!)")
+}
+print("")
+print("IMPORTANT:")
+print("  • iPhone and Mac must be on same WiFi network")
+print("  • Use the hostname (.local) if possible - it never changes!")
+print("  • If hostname doesn't work, use the IP address above")
+print(String(repeating: "=", count: 60))
 
 try configure(app)
 try app.run()

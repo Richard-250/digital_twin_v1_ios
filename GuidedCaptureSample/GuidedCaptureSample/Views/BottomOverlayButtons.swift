@@ -139,18 +139,46 @@ private struct CaptureButton: View {
 }
 
 private struct AutoDetectionStateView: View {
+    @Environment(AppDataModel.self) var appModel
     var session: ObjectCaptureSession
+    
+    @State private var isAnimating = false
+    
+    // Computed property for detection state
+    private var isDetected: Bool {
+        !session.feedback.contains(.objectNotDetected)
+    }
 
     var body: some View {
         VStack(spacing: 6) {
-            let imageName = session.feedback.contains(.objectNotDetected) ? "eye.slash.circle" : "eye.circle"
-            Image(systemName: imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .padding(5)
-                .frame(width: 30)
+            let imageName = isDetected ? "person.crop.circle.fill" : "person.crop.circle.badge.questionmark"
+            
+            ZStack {
+                // Pulsing background circle when detecting
+                if !isDetected {
+                    Circle()
+                        .fill(Color.white.opacity(0.3))
+                        .frame(width: 40, height: 40)
+                        .scaleEffect(isAnimating ? 1.2 : 1.0)
+                        .opacity(isAnimating ? 0.0 : 0.5)
+                        .animation(
+                            Animation.easeInOut(duration: 1.5)
+                                .repeatForever(autoreverses: false),
+                            value: isAnimating
+                        )
+                }
+                
+                Image(systemName: imageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .padding(5)
+                    .frame(width: 30)
+            }
+            
             if UIDevice.current.userInterfaceIdiom == .pad {
-                let text = session.feedback.contains(.objectNotDetected) ? "Not Detected" : "Detected"
+                let text = isDetected ? 
+                    (appModel.isBoundingBoxLocked ? "Locked" : "Detected") : 
+                    "Detecting..."
                 Text(text)
                     .frame(width: 90)
                     .font(.footnote)
@@ -158,9 +186,23 @@ private struct AutoDetectionStateView: View {
                     .fontWeight(.semibold)
             }
         }
-        .foregroundColor(.white)
+        .foregroundColor(isDetected ? (appModel.isBoundingBoxLocked ? .green : .white) : .orange)
         .fontWeight(.semibold)
         .padding(.bottom, UIDevice.current.userInterfaceIdiom == .pad ? 0 : 15)
+        .onAppear {
+            if !session.feedback.contains(.objectNotDetected) {
+                isAnimating = false
+            } else {
+                isAnimating = true
+            }
+        }
+        .onChange(of: session.feedback.contains(.objectNotDetected)) { _ in
+            if session.feedback.contains(.objectNotDetected) {
+                isAnimating = true
+            } else {
+                isAnimating = false
+            }
+        }
     }
 }
 
@@ -172,7 +214,12 @@ private struct LockBoundingBoxButton: View {
         Button(
             action: {
                 appModel.isBoundingBoxLocked.toggle()
-                logger.log("Bounding box locked: \(appModel.isBoundingBoxLocked)")
+                
+                if appModel.isBoundingBoxLocked {
+                    logger.log("Bounding box manually locked by user")
+                } else {
+                    logger.log("Bounding box unlocked by user - will auto-lock when person is detected")
+                }
             },
             label: {
                 VStack(spacing: 6) {
@@ -191,6 +238,8 @@ private struct LockBoundingBoxButton: View {
                 .fontWeight(.semibold)
             })
         .padding(.bottom, UIDevice.current.userInterfaceIdiom == .pad ? 0 : 15)
+        .disabled(session.feedback.contains(.objectNotDetected) && !appModel.isBoundingBoxLocked)
+        .opacity((session.feedback.contains(.objectNotDetected) && !appModel.isBoundingBoxLocked) ? 0.5 : 1.0)
     }
 
     struct LocalizedString {
@@ -209,8 +258,12 @@ private struct ResetBoundingBoxButton: View {
     var body: some View {
         Button(
             action: {
+                // Unlock box first, then reset detection
                 appModel.isBoundingBoxLocked = false
+                // Use the person detection service's reset method if available
+                appModel.personDetectionService.resetDetection()
                 session.resetDetection()
+                logger.log("Reset bounding box - detection restarted")
             },
             label: {
                 VStack(spacing: 6) {
@@ -354,10 +407,14 @@ private struct CaptureModeButton: View {
 }
 
 private struct NumOfImagesButton: View {
+    @Environment(AppDataModel.self) var appModel
     var session: ObjectCaptureSession
 
     @State private var showInfo: Bool = false
     @Environment(\.colorScheme) private var colorScheme
+    
+    // Server processing supports up to 500 images
+    private let serverMaxImages = 500
 
     var body: some View {
         Button(action: {
@@ -374,9 +431,10 @@ private struct NumOfImagesButton: View {
                                 .font(.caption2)
                         }
                     }
+                // Show server limit (500) instead of on-device limit for server processing
                 Text(String(format: LocalizedString.numOfImages,
                             session.numberOfShotsTaken,
-                            session.maximumNumberOfInputImages))
+                            serverMaxImages))
                 .font(.footnote)
                 .fontWidth(.condensed)
                 .fontDesign(.rounded)
@@ -390,9 +448,8 @@ private struct NumOfImagesButton: View {
                     .font(.headline)
                 Text(String(format: LocalizedString.createModelLimits,
                             AppDataModel.minNumImages,
-                            session.maximumNumberOfInputImages))
-                Text(String(format: LocalizedString.captureMore,
-                            session.maximumNumberOfInputImages))
+                            serverMaxImages))
+                Text(LocalizedString.captureMoreServer)
             }
             .foregroundStyle(colorScheme == .light ? .black : .white)
             .padding()
@@ -422,6 +479,11 @@ private struct NumOfImagesButton: View {
             bundle: Bundle.main,
             value: "You can capture more than %d images and process them on your Mac.",
             comment: "Text to explain the photo limit in object capture.")
+        static let captureMoreServer = NSLocalizedString(
+            "Server processing supports up to 500 images. Continue capturing to improve model quality. (Object Capture)",
+            bundle: Bundle.main,
+            value: "Server processing supports up to 500 images. Continue capturing to improve model quality.",
+            comment: "Text explaining server processing supports up to 500 images.")
     }
 }
 

@@ -27,7 +27,14 @@ struct CapturePrimaryView: View {
         }
         .onAppear(perform: {
             UIApplication.shared.isIdleTimerDisabled = true
+            // Ensure person detection is running for object mode
+            if appModel.captureMode == .object {
+                appModel.personDetectionService.startAutoDetection(for: session, appModel: appModel, captureMode: appModel.captureMode)
+            }
         })
+        .onDisappear {
+            appModel.personDetectionService.stopAutoDetection()
+        }
         .id(session.id)
     }
 }

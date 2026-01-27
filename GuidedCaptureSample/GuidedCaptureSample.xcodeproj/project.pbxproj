@@ -19,6 +19,7 @@
 		64A07DF72BFE7CDA00FDE113 /* CaptureFolderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A07DCD2BFE7CDA00FDE113 /* CaptureFolderManager.swift */; };
 		64A07DF82BFE7CDA00FDE113 /* FeedbackMessages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A07DD12BFE7CDA00FDE113 /* FeedbackMessages.swift */; };
 		64A07DF92BFE7CDA00FDE113 /* ServerProcessingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A07DCE2BFE7CDA00FDE113 /* ServerProcessingService.swift */; };
+		64A07DFA2BFE7CDB00FDE113 /* PersonDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A07DCF2BFE7CDB00FDE113 /* PersonDetectionService.swift */; };
 		64A07E102BFE9E0F00FDE113 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A07E032BFE9C7700FDE113 /* FeedbackView.swift */; };
 		64A07E112BFE9E0F00FDE113 /* TutorialVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A07E0D2BFE9C7700FDE113 /* TutorialVideoView.swift */; };
 		64A07E122BFE9E0F00FDE113 /* ProgressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A07E0B2BFE9C7700FDE113 /* ProgressBarView.swift */; };
@@ -62,6 +63,7 @@
 		64A07DCC2BFE7CDA00FDE113 /* AppDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataModel.swift; sourceTree = "<group>"; };
 		64A07DCD2BFE7CDA00FDE113 /* CaptureFolderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureFolderManager.swift; sourceTree = "<group>"; };
 		64A07DCE2BFE7CDA00FDE113 /* ServerProcessingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProcessingService.swift; sourceTree = "<group>"; };
+		64A07DCF2BFE7CDB00FDE113 /* PersonDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonDetectionService.swift; sourceTree = "<group>"; };
 		64A07DD12BFE7CDA00FDE113 /* FeedbackMessages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackMessages.swift; sourceTree = "<group>"; };
 		64A07DD32BFE7CDA00FDE113 /* GuidedCaptureSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedCaptureSampleApp.swift; sourceTree = "<group>"; };
 		64A07DD72BFE7CDA00FDE113 /* OnboardingButtonView+LocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingButtonView+LocalizedString.swift"; sourceTree = "<group>"; };
@@ -146,6 +148,7 @@
 				8DB8EB492C09595F004F3E19 /* AppDataModel+Orbit.swift */,
 				64A07DCD2BFE7CDA00FDE113 /* CaptureFolderManager.swift */,
 				64A07DCE2BFE7CDA00FDE113 /* ServerProcessingService.swift */,
+				64A07DCF2BFE7CDB00FDE113 /* PersonDetectionService.swift */,
 				64A07DD12BFE7CDA00FDE113 /* FeedbackMessages.swift */,
 				64A07DD32BFE7CDA00FDE113 /* GuidedCaptureSampleApp.swift */,
 				64A07DD72BFE7CDA00FDE113 /* OnboardingButtonView+LocalizedString.swift */,
@@ -343,6 +346,7 @@
 				64A07DF72BFE7CDA00FDE113 /* CaptureFolderManager.swift in Sources */,
 				64A07DF82BFE7CDA00FDE113 /* FeedbackMessages.swift in Sources */,
 				64A07DF92BFE7CDA00FDE113 /* ServerProcessingService.swift in Sources */,
+				64A07DFA2BFE7CDB00FDE113 /* PersonDetectionService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -13,9 +13,12 @@ class ServerProcessingService {
     static let shared = ServerProcessingService()
     
     // Server configuration
-    // This computer's IP address - make sure iPhone and computer are on same WiFi network
-    // You can change this to your computer's actual IP if it's different
-    private let serverBaseURL = "http://192.168.1.78:1100"  // Local computer IP (update if Mac IP changes)
+    // Use your Mac's hostname with .local - this NEVER changes!
+    // The server shows the correct hostname when it starts (e.g., "MacBooks-MacBook-Air.local")
+    // 
+    // Current hostname from server: MacBooks-MacBook-Air.local
+    // If this doesn't work, use the IP address shown when server starts
+    private let serverBaseURL = "http://MacBooks-MacBook-Air.local:1100"  // Hostname (stable - never changes!)
     
     // VPN Note:
     // - Using THIS Mac as server on local WiFi: NO VPN needed (even if Mac has VPN)

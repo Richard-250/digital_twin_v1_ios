@@ -6,6 +6,7 @@ A data model for maintaining the app state, including the underlying object capt
  you maintain in addition, perhaps with invariants between them.
 */
 
+import Foundation
 import RealityKit
 import SwiftUI
 import os
@@ -84,6 +85,9 @@ class AppDataModel: Identifiable {
     
     // Track if bounding box should be locked (not auto-updated)
     var isBoundingBoxLocked: Bool = false
+    
+    // Person detection service for automatic bounding box resizing
+    var personDetectionService = PersonDetectionService()
 
     // When state moves to failed, this is the error causing it.
     private(set) var error: Swift.Error?
@@ -106,8 +110,23 @@ class AppDataModel: Identifiable {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
-        DispatchQueue.main.async {
-            self.detachListeners()
+        // Cancel tasks directly in deinit - handle main actor isolation
+        if Thread.isMainThread {
+            // We're on main thread, can safely access main actor isolated properties
+            MainActor.assumeIsolated {
+                for task in tasks {
+                    task.cancel()
+                }
+                tasks.removeAll()
+            }
+        } else {
+            // Not on main thread - dispatch to main thread synchronously
+            DispatchQueue.main.sync {
+                for task in tasks {
+                    task.cancel()
+                }
+                tasks.removeAll()
+            }
         }
     }
 
@@ -227,6 +246,11 @@ extension AppDataModel {
         
         // Reset bounding box lock state for new capture
         isBoundingBoxLocked = false
+        
+        // Start automatic person detection for object mode
+        if captureMode == .object {
+            personDetectionService.startAutoDetection(for: session, appModel: self, captureMode: captureMode)
+        }
 
         if case let .failed(error) = session.state {
             logger.error("Got error starting session! \(String(describing: error))")
@@ -276,6 +300,7 @@ extension AppDataModel {
         messageList.removeAll()
         captureMode = .object
         isBoundingBoxLocked = false
+        personDetectionService.stopAutoDetection()
         state = .ready
         isSaveDraftEnabled = false
         tutorialPlayedOnce = false
@@ -349,7 +374,10 @@ extension AppDataModel {
                 reset()
             case .viewing:
                 photogrammetrySession = nil
-
+                
+                // Save scan to history
+                saveScanToHistory()
+                
                 removeCheckpointFolder()
             case .failed:
                 logger.error("App failed state error=\(String(describing: self.error!))")
@@ -359,11 +387,42 @@ extension AppDataModel {
         }
     }
 
+    private func saveScanToHistory() {
+        guard let captureFolderManager = captureFolderManager else { return }
+        
+        let modelURL = captureFolderManager.modelsFolder.appendingPathComponent("model-mobile.usdz")
+        
+        // Check if model file exists
+        guard FileManager.default.fileExists(atPath: modelURL.path) else {
+            logger.warning("Model file not found at \(modelURL.path)")
+            return
+        }
+        
+        // Create scan metadata
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .short
+        let scanName = "Scan \(dateFormatter.string(from: Date()))"
+        
+        // Explicitly specify the type for nil thumbnailURL
+        let scan = ScanMetadata(
+            modelURL: modelURL,
+            thumbnailURL: nil as URL?, // Could generate thumbnail later
+            name: scanName
+        )
+        
+        // Add to history
+        ScanHistoryManager.shared.addScan(scan)
+        logger.log("Saved scan to history: \(scanName)")
+    }
+    
     private func removeCheckpointFolder() {
         // Remove checkpoint folder to free up space now that the model is generated.
         if let captureFolderManager {
+            // Capture only the URL to avoid Sendable issues
+            let checkpointURL = captureFolderManager.checkpointFolder
             DispatchQueue.global(qos: .background).async {
-                try? FileManager.default.removeItem(at: captureFolderManager.checkpointFolder)
+                try? FileManager.default.removeItem(at: checkpointURL)
             }
         }
     }
@@ -388,6 +447,126 @@ extension AppDataModel {
                 return currentState
             case .area:
                 return .captureInAreaMode
+        }
+    }
+}
+
+// MARK: - Scan History Types
+// These types are defined here to ensure they're accessible until the separate files are added to the Xcode project
+
+struct ScanMetadata: Identifiable, Codable {
+    let id: String
+    let modelURL: URL
+    let thumbnailURL: URL?
+    let dateCreated: Date
+    let name: String
+    
+    init(id: String = UUID().uuidString, modelURL: URL, thumbnailURL: URL? = nil, dateCreated: Date = Date(), name: String) {
+        self.id = id
+        self.modelURL = modelURL
+        self.thumbnailURL = thumbnailURL
+        self.dateCreated = dateCreated
+        self.name = name
+    }
+    
+    // Custom Codable implementation to handle URLs
+    enum CodingKeys: String, CodingKey {
+        case id, dateCreated, name, modelURLPath, thumbnailURLPath
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        dateCreated = try container.decode(Date.self, forKey: .dateCreated)
+        name = try container.decode(String.self, forKey: .name)
+        
+        let modelPath = try container.decode(String.self, forKey: .modelURLPath)
+        modelURL = URL(fileURLWithPath: modelPath)
+        
+        thumbnailURL = try container.decodeIfPresent(String.self, forKey: .thumbnailURLPath).map { URL(fileURLWithPath: $0) }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(dateCreated, forKey: .dateCreated)
+        try container.encode(name, forKey: .name)
+        try container.encode(modelURL.path, forKey: .modelURLPath)
+        try container.encodeIfPresent(thumbnailURL?.path, forKey: .thumbnailURLPath)
+    }
+}
+
+@MainActor
+@Observable
+class ScanHistoryManager {
+    static let shared = ScanHistoryManager()
+    
+    private let historyFileName = "scan_history.json"
+    private var historyFileURL: URL {
+        URL.documentsDirectory.appendingPathComponent(historyFileName)
+    }
+    
+    var scans: [ScanMetadata] = []
+    
+    private init() {
+        loadHistory()
+    }
+    
+    func addScan(_ scan: ScanMetadata) {
+        self.scans.insert(scan, at: 0) // Add to beginning (most recent first)
+        saveHistory()
+        logger.log("Added scan to history: \(scan.name)")
+    }
+    
+    func deleteScan(_ scan: ScanMetadata) {
+        self.scans.removeAll { $0.id == scan.id }
+        saveHistory()
+        
+        // Delete the model file if it exists
+        if FileManager.default.fileExists(atPath: scan.modelURL.path) {
+            try? FileManager.default.removeItem(at: scan.modelURL)
+        }
+        
+        // Delete thumbnail if it exists
+        if let thumbnailURL = scan.thumbnailURL,
+           FileManager.default.fileExists(atPath: thumbnailURL.path) {
+            try? FileManager.default.removeItem(at: thumbnailURL)
+        }
+        
+        logger.log("Deleted scan from history: \(scan.name)")
+    }
+    
+    private func loadHistory() {
+        guard FileManager.default.fileExists(atPath: historyFileURL.path) else {
+            self.scans = []
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: historyFileURL)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let decodedScans = try decoder.decode([ScanMetadata].self, from: data)
+            
+            // Filter out scans where model files no longer exist
+            self.scans = decodedScans.filter { FileManager.default.fileExists(atPath: $0.modelURL.path) }
+            
+            logger.log("Loaded \(self.scans.count) scans from history")
+        } catch {
+            logger.error("Failed to load scan history: \(error.localizedDescription)")
+            self.scans = []
+        }
+    }
+    
+    private func saveHistory() {
+        do {
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(self.scans)
+            try data.write(to: historyFileURL)
+            logger.log("Saved \(self.scans.count) scans to history")
+        } catch {
+            logger.error("Failed to save scan history: \(error.localizedDescription)")
         }
     }
 }

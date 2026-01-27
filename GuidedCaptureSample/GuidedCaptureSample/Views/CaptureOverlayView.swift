@@ -33,6 +33,10 @@ struct CaptureOverlayView: View {
                 VStack(spacing: 20) {
                     TopOverlayButtons(session: session,
                                       showCaptureModeGuidance: showCaptureModeGuidance)
+                    
+                    // Lighting status indicator
+                    LightingStatusView(session: session)
+                        .padding(.top, 8)
 
                     Spacer()
 
@@ -204,24 +208,16 @@ private struct BoundingBoxGuidanceView: View {
                 case .object:
                     if hasDetectionFailed {
                         return NSLocalizedString(
-                            "Can‘t find your object. It should be larger than 3 in (8 cm) in each dimension.",
+                            "Can't detect person. Stand in the center, ensure good lighting, and keep your full body visible. (Object Capture, State)",
                             bundle: Bundle.main,
-                            value: "Can‘t find your object. It should be larger than 3 in (8 cm) in each dimension.",
-                            comment: "Feedback message when detection has failed.")
+                            value: "Can't detect person. Stand in the center, ensure good lighting, and keep your full body visible.",
+                            comment: "Feedback message when person detection has failed.")
                     } else {
-                        if appModel.captureMode == .object {
-                            return NSLocalizedString(
-                                "Position the person in the center of the view. The bounding box will appear large by default. (Object Capture, State)",
-                                bundle: Bundle.main,
-                                value: "Position the person in the center of the view. The bounding box will appear large by default.",
-                                comment: "Feedback message for body scanning setup.")
-                        } else {
-                            return NSLocalizedString(
-                                "Move close and center the dot on your object, then tap Continue. (Object Capture, State)",
-                                bundle: Bundle.main,
-                                value: "Move close and center the dot on your object, then tap Continue.",
-                                comment: "Feedback message to fill the camera feed with the object.")
-                        }
+                        return NSLocalizedString(
+                            "Position yourself in the center of the view. The system will automatically detect you and resize the bounding box. (Object Capture, State)",
+                            bundle: Bundle.main,
+                            value: "Position yourself in the center of the view. The system will automatically detect you and resize the bounding box.",
+                            comment: "Feedback message for professional body scanning setup.")
                     }
                 case .area:
                     return NSLocalizedString(
@@ -233,16 +229,24 @@ private struct BoundingBoxGuidanceView: View {
         } else if case .detecting = session.state {
             if appModel.isBoundingBoxLocked {
                 return NSLocalizedString(
-                    "Box is locked. Resize using the handles to fit the person's body. (Object Capture, State)",
+                    "✓ Person detected! Bounding box locked and ready. Tap 'Start Capture' when ready. (Object Capture, State)",
                     bundle: Bundle.main,
-                    value: "Box is locked. Resize using the handles to fit the person's body.",
-                    comment: "Feedback message when box is locked and user should resize manually.")
+                    value: "✓ Person detected! Bounding box locked and ready. Tap 'Start Capture' when ready.",
+                    comment: "Feedback message when person is detected and box is locked.")
             } else {
-                return NSLocalizedString(
-                    "Resize the box to fit the person's body. Drag handles to adjust size. Tap Lock when ready. (Object Capture, State)",
-                    bundle: Bundle.main,
-                    value: "Resize the box to fit the person's body. Drag handles to adjust size. Tap Lock when ready.",
-                    comment: "Feedback message to resize the box for body scanning.")
+                if session.feedback.contains(.objectNotDetected) {
+                    return NSLocalizedString(
+                        "Detecting person... Please stand still in the center. (Object Capture, State)",
+                        bundle: Bundle.main,
+                        value: "Detecting person... Please stand still in the center.",
+                        comment: "Feedback message when detecting person.")
+                } else {
+                    return NSLocalizedString(
+                        "Person detected! Box is sizing to your body measurements... (Object Capture, State)",
+                        bundle: Bundle.main,
+                        value: "Person detected! Box is sizing to your body measurements...",
+                        comment: "Feedback message when person is detected and box is resizing to body measurements.")
+                }
             }
         } else {
             return nil
@@ -262,5 +266,61 @@ extension OverlayButtons {
             default:
                 return true
         }
+    }
+}
+
+// MARK: - Lighting Status View (defined here since file may not be in Xcode project)
+private struct LightingStatusView: View {
+    @Environment(AppDataModel.self) var appModel
+    var session: ObjectCaptureSession
+    
+    var body: some View {
+        if let lightingStatus = getLightingStatus() {
+            HStack(spacing: 8) {
+                Image(systemName: lightingStatus.icon)
+                    .foregroundColor(lightingStatus.color)
+                    .font(.caption)
+                
+                Text(lightingStatus.message)
+                    .font(.caption)
+                    .foregroundColor(lightingStatus.color)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(lightingStatus.color.opacity(0.15))
+            .cornerRadius(8)
+        }
+    }
+    
+    private func getLightingStatus() -> (icon: String, message: String, color: Color)? {
+        let feedback = session.feedback
+        
+        // Only show lighting status when actively detecting or capturing
+        guard session.state == .detecting || session.state == .capturing || session.state == .ready else {
+            return nil
+        }
+        
+        if feedback.contains(.environmentTooDark) {
+            return (
+                icon: "lightbulb.slash.fill",
+                message: "More Light Required - Too Dark",
+                color: .red
+            )
+        } else if feedback.contains(.environmentLowLight) {
+            return (
+                icon: "lightbulb.fill",
+                message: "More Light Recommended",
+                color: .orange
+            )
+        } else if session.state == .detecting || session.state == .capturing {
+            // Good lighting - only show if actively scanning
+            return (
+                icon: "lightbulb.fill",
+                message: "Lighting: Good ✓",
+                color: .green
+            )
+        }
+        
+        return nil
     }
 }

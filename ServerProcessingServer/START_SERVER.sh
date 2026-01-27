@@ -9,8 +9,9 @@ echo "This server:"
 echo "  ✅ Uses PhotogrammetrySession API (same as iOS)"
 echo "  ✅ Processes images using native Swift code"
 echo "  ✅ NO CLI tool needed!"
+echo "  ✅ Uses same API as iPhone app"
 echo ""
-echo "Server will be accessible at: http://192.168.1.65:1100"
+echo "The server will show the correct IP and hostname when it starts."
 echo "Make sure iPhone and Mac are on the same WiFi network"
 echo ""
 echo "To stop server: Press Ctrl+C"
@@ -23,11 +24,18 @@ cd "$(dirname "$0")"
 if [ ! -f ".build/debug/ServerProcessingServer" ]; then
     echo "Building server..."
     swift build
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Build failed!"
+        exit 1
+    fi
     echo ""
 fi
 
 # Run server
+echo "Starting server..."
 swift run ServerProcessingServer
+
+
 
 
 
